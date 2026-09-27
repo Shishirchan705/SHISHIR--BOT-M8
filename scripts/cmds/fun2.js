@@ -109,7 +109,7 @@ async function handleDriveMedia(api, event) {
         const downloadUrl = `https://docs.google.com/uc?export=download&id=${fileId}`;
 
         api.sendMessage({
-            body: `ₕₑᵣₑ ᵢₛ ₐ ᵥᵢdₑₒ Fᵣ₏ₘ 𝔐𝔯.𝔎ᵢ𝔫𝔤 ☠️✌🏼`,
+            body: `ₕₑᵣₑ ᵢₛ ₐ ᵥᵢdₑₒ Fᵣ₏ₘ SHISHIR  ☠️✌🏼`,
             attachment: [await global.utils.getStreamFromURL(downloadUrl)]
         }, threadID, (err) => {
             if (!err) {
