@@ -59,7 +59,7 @@
     "notes": "if you enable this feature, only the ids in the whiteListIds section can use the bot"
   },
   "nickNameBot": "🎀𝘼𝙔-𝙈𝘼🦋くめ",
-  "prefix": "!",
+  "prefix": "/",
   "usePrefix": {
     "enable": true,
     "notes": "if enable is set to false, NO ONE needs a prefix to use commands (global no-prefix mode). Leave this true and use adminUsePrefix below instead for admin-only no-prefix.",
