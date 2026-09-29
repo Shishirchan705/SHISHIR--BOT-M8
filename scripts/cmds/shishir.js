@@ -1,7 +1,9 @@
+const axios = require("axios");
+
 module.exports = {
   config: {
     name: "shishir",
-    version: "3.0.0",
+    version: "3.1.0",
     author: "SHISHIR",
     role: 0,
     shortDescription: "SHISHIR — Personal Information",
@@ -17,6 +19,9 @@ module.exports = {
     const text = event.body?.trim().toLowerCase();
 
     if (text !== "shishir") return;
+
+    // আপনার Catbox ভিডিও এর লিঙ্কটি নিচে বসান (https://files.catbox.moe/...)
+    const videoUrl = "https://files.catbox.moe/zqjh1p.mp4";
 
     const info = `
 ╔═══━━━─── 𓆩🖤𓆪 ───━━━═══╗
@@ -68,10 +73,21 @@ module.exports = {
 ╚═══━━━─── 𓆩♛𓆪 ───━━━═══╝
 `;
 
-    return api.sendMessage(
-      info,
-      event.threadID,
-      event.messageID
-    );
+    try {
+      const response = await axios.get(videoUrl, { responseType: "stream" });
+
+      return api.sendMessage(
+        {
+          body: info,
+          attachment: response.data
+        },
+        event.threadID,
+        event.messageID
+      );
+    } catch (error) {
+      console.error(error);
+      // ভিডিও লোড না হলেও টেক্সট মেসেজটি চলে যাবে
+      return api.sendMessage(info, event.threadID, event.messageID);
+    }
   }
 };
