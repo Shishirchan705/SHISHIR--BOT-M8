@@ -55,7 +55,7 @@ module.exports = {
     const religion = "Islam";
     const apiServer = await getApiBaseUrl();
     const relationship = "Single";
-    const videoLink = "https://files.catbox.moe/vd43nx.mp4";
+    const videoLink = "https://files.catbox.moe/tghp3z.mp4";
     const timeBD = moment().tz("Asia/Dhaka");
     
     const infoMsg = 
