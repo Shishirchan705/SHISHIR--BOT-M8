@@ -32,8 +32,8 @@ const moment = require("moment-timezone");
 
 module.exports = {
   config: {
-    name: "owner",
-    aliases: ["admininfo", "info", "ownerinfo2"],
+    name: "owner2",
+    aliases: ["admininfo", "info", "ownerinfo"],
     version: "3.0",
     author: "xalman",
     countDown: 5,
@@ -47,9 +47,9 @@ module.exports = {
 
     const ownerName = "𝗔𝗵𝗺𝗲𝗱’𝘀 𝗦𝗛𝗜’𝗦𝗛𝗜𝗥";
     const ownerAge = "17";
-    const fbName = "YOUR ABBU";
+    const fbName = "YOUR ABBu";
     const messenger = "https://www.facebook.com/share/19auJ5Y33y/";
-    const whatsapp = "017493---26";
+    const whatsapp = "01749--26";
     const telegram = "@AhmeD's shi'shir";
     const address = "Sirajganj , Rajshahi , Bangladesh";
     const religion = "Islam";
@@ -87,7 +87,7 @@ module.exports = {
         attachment: await global.utils.getStreamFromURL(videoLink)
       });
     } catch (e) {
-      return message.reply(owner2Msg);
+      return message.reply(infoMsg);
     }
   },
 
