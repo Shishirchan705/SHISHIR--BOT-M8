@@ -1,166 +1,131 @@
-const axios = require("axios");
-const fs = require("fs-extra");
-const path = require("path");
 const os = require("os");
-const { createCanvas, loadImage } = require("canvas");
-const moment = require("moment-timezone");
 
 module.exports = {
-config: {
-name: "up4",
-aliases: ["uptime4", "Up4"],
-version: "22.0.0",
-author: "MR_FARHAN",
-countDown: 5,
-role: 0,
-category: "system",
-description: "Admin: No Prefix (61592841571046) | User: With Prefix",
-usePrefix: true
-},
+	config: {
+		name: "uptime4",
+		aliases: ["up4", "runtime", "status4a"],
+		version: "1.0",
+		author: "Neoaz 🐊",
+		countDown: 5,
+		role: 0,
+		description: {
+			en: "show how long the bot has been running and its system stats"
+		},
+		category: "info",
+		guide: {
+			en: "{pn}"
+		}
+	},
 
-onStart: async function ({ api, event, args }) {
-// onStart ekhon shudhu prefix wala command handle korbe (Normal users)
-return this.handleUptime({ api, event });
-},
+	langs: {
+		en: {
+			loading: "🐊 Measuring uptime...",
+			format: "╭─────────────⭓"
+				+ "\n│ ⏱️ UPTIME"
+				+ "\n├─────⭔"
+				+ "\n│ %1"
+				+ "\n│ Days: %2 | Hours: %3"
+				+ "\n│ Minutes: %4 | Seconds: %5"
+				+ "\n├─────⭔"
+				+ "\n│ 💻 SYSTEM"
+				+ "\n│ CPU: %6 (%7 cores)"
+				+ "\n│ RAM: %8 / %9 (%10%)"
+				+ "\n│ Platform: %11 %12"
+				+ "\n│ Node: %13"
+				+ "\n├─────⭔"
+				+ "\n│ 🐑 Bot: %14"
+				+ "\n│ 🧩 Commands: %15"
+				+ "\n│ 👥 Users: %16"
+				+ "\n│ 💬 Threads: %17"
+				+ "\n╰─────────────⭓"
+		}
+	},
 
-onChat: async function ({ api, event }) {
-const { body, senderID } = event;
-if (!body) return;
+	onStart: async function ({ message, api, getLang, role }) {
+		const startTime = (global.GoatBot && global.GoatBot.startTime) || (Date.now() - process.uptime() * 1000);
+		const msg = await message.reply(getLang("loading"));
 
-// Hardcoded Admin UID check for No Prefix
-const adminUID = "61592841571046";
-const msg = body.toLowerCase();
+		const frames = ["▰▱▱▱▱▱▱▱▱▱", "▰▰▰▱▱▱▱▱▱▱", "▰▰▰▰▰▰▱▱▱▱", "▰▰▰▰▰▰▰▰▱▱", "▰▰▰▰▰▰▰▰▰▰"];
+		const EDIT_INTERVAL = 700;
+		let stopped = false;
+		const canEdit = msg && msg.messageID && typeof api.editMessage == "function";
+		const editSafely = async (text, messageID) => {
+			try {
+				await Promise.race([
+					api.editMessage(text, messageID),
+					new Promise((_, reject) => setTimeout(() => reject(new Error("editMessage timeout")), 8000))
+				]);
+				return true;
+			}
+			catch (err) {
+				return false;
+			}
+		};
+		const animating = canEdit
+			? (async () => {
+				for (const frame of frames) {
+					if (stopped)
+						return;
+					await new Promise(resolve => setTimeout(resolve, EDIT_INTERVAL));
+					if (stopped)
+						return;
+					const ok = await editSafely(`${getLang("loading")}\n${frame}`, msg.messageID);
+					if (!ok)
+						return;
+				}
+			})()
+			: Promise.resolve();
 
-if (senderID == adminUID && (msg == "up" || msg == "uptime")) {
-return this.handleUptime({ api, event });
-}
-},
+		const uptimeMs = Date.now() - startTime;
+		const totalSec = Math.floor(uptimeMs / 1000);
+		const days = Math.floor(totalSec / 86400);
+		const hours = Math.floor((totalSec % 86400) / 3600);
+		const minutes = Math.floor((totalSec % 3600) / 60);
+		const seconds = totalSec % 60;
 
-handleUptime: async function ({ api, event }) {
-const { threadID, messageID, senderID } = event;
+		const cpus = os.cpus();
+		const cpuModel = (cpus[0] && cpus[0].model || "Unknown").trim();
+		const cores = cpus.length;
 
-// STEP 1: Sending Checking Message
-const sendChecking = await api.sendMessage("🔍 Checking system status, please wait...", threadID);
+		const totalMem = os.totalmem();
+		const freeMem = os.freemem();
+		const usedMem = totalMem - freeMem;
+		const memPercent = ((usedMem / totalMem) * 100).toFixed(1);
 
-const timeStart = Date.now();
-const uptime = process.uptime();
-const hours = Math.floor(uptime / 3600);
-const minutes = Math.floor((uptime % 3600) / 60);
-const timeString = `${hours}h ${minutes}m`;
+		const human = (bytes) => {
+			const units = ["B", "KB", "MB", "GB", "TB"];
+			let i = 0;
+			let value = bytes;
+			while (value >= 1024 && i < units.length - 1) {
+				value /= 1024;
+				i++;
+			}
+			return `${value.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+		};
 
-const usedMem = ((os.totalmem() - os.freemem()) / (1024 ** 3)).toFixed(1);
-const totalMem = (os.totalmem() / (1024 ** 3)).toFixed(1);
-const ramPercentage = ((usedMem / totalMem) * 100).toFixed(0);
-const currentDate = moment.tz("Asia/Dhaka").format("DD/MM/YYYY");
+		const uptimeString = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+		const botName = (global.GoatBot && global.GoatBot.config && global.GoatBot.config.nickNameBot) || "Goat Bot";
+		const commandCount = global.GoatBot && global.GoatBot.commands ? global.GoatBot.commands.size : 0;
+		const userCount = global.db && global.db.allUserData ? global.db.allUserData.length : 0;
+		const threadCount = global.db && global.db.allThreadData ? global.db.allThreadData.length : 0;
 
-let userName = "User";
-try {
-const info = await api.getUserInfo(senderID);
-userName = info[senderID].name;
-} catch (e) { userName = "Developer"; }
+		const body = getLang(
+			"format",
+			uptimeString, days, hours, minutes, seconds,
+			cpuModel, cores,
+			human(usedMem), human(totalMem), memPercent,
+			os.platform(), os.arch(),
+			process.version,
+			botName, commandCount, userCount, threadCount
+		);
 
-const imgUrl = "https://i.imgur.com/TDkyAdv.jpeg";
-const userImgUrl = `https://graph.facebook.com/${senderID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
-const cachePath = path.join(__dirname, "cache", `up_milon_final_${Date.now()}.png`);
-
-try {
-if (!fs.existsSync(path.join(__dirname, "cache"))) fs.ensureDirSync(path.join(__dirname, "cache"));
-
-const image = await loadImage(imgUrl);
-const canvas = createCanvas(image.width, image.height);
-const ctx = canvas.getContext("2d");
-ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-const centerX = canvas.width / 2;
-const centerY = canvas.height / 2;
-
-// --- USER PROFILE (Box 220x220) ---
-const boxSize = 220;
-const boxX = centerX - (boxSize / 2);
-const boxY = centerY - (boxSize / 2) + 15;
-
-try {
-const userImg = await loadImage(userImgUrl);
-ctx.shadowColor = "#00ffff";
-ctx.shadowBlur = 25;
-ctx.strokeStyle = "#ffffff";
-ctx.lineWidth = 5;
-ctx.strokeRect(boxX, boxY, boxSize, boxSize);
-ctx.shadowBlur = 0; 
-ctx.drawImage(userImg, boxX, boxY, boxSize, boxSize);
-
-ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-ctx.fillRect(boxX, boxY + boxSize - 35, boxSize, 35);
-ctx.textAlign = "center";
-ctx.fillStyle = "#ffffff";
-ctx.font = "bold 16px Arial";
-ctx.fillText(userName.toUpperCase(), centerX, boxY + boxSize - 12);
-} catch (err) { console.log("Image load failed"); }
-
-// --- Circles ---
-const drawCircle = (x, y, radius, percent, label, value, color) => {
-ctx.beginPath();
-ctx.arc(x, y, radius, 0, Math.PI * 2);
-ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-ctx.lineWidth = 10; ctx.stroke();
-ctx.beginPath();
-ctx.arc(x, y, radius, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * (percent / 100)));
-ctx.strokeStyle = color;
-ctx.lineWidth = 10; ctx.lineCap = "round"; ctx.stroke();
-ctx.textAlign = "center"; ctx.fillStyle = "#ffffff";
-ctx.font = "bold 20px Arial"; ctx.fillText(value, x, y + 8);
-ctx.font = "14px Arial"; ctx.fillText(label, x, y + 35);
-};
-
-const uptimeX = boxX - 110;
-const ramX = boxX + boxSize + 110;
-drawCircle(uptimeX, centerY + 30, 60, 75, "UPTIME", timeString, "#00ffcc");
-drawCircle(ramX, centerY - 40, 60, ramPercentage, "RAM", `${ramPercentage}%`, "#ff3366");
-const pingMS = Date.now() - timeStart;
-drawCircle(ramX, centerY + 90, 50, 80, "PING", `${pingMS}ms`, "#ffff00");
-
-// Footer
-ctx.textAlign = "center";
-ctx.font = "bold 24px Arial";
-ctx.fillStyle = "#00ff00";
-ctx.fillText("● SYSTEM STATUS: ACTIVE", centerX, canvas.height - 65);
-ctx.font = "italic bold 18px Arial"; 
-ctx.fillStyle = "#FFD700"; 
-ctx.fillText("DEVELOPED BY:-AhmeD'z SHI'SHIR ", centerX, canvas.height - 95);
-
-// Bot Name & Date
-ctx.textAlign = "left";
-ctx.font = "bold 30px Arial";
-ctx.shadowColor = "#0000ff"; ctx.shadowBlur = 15;
-ctx.fillStyle = "#33ccff";
-ctx.fillText("[SHISHIR-BOT]", 199, 128); 
-
-const dateX = centerX + 82;
-const dateY = 120; 
-ctx.shadowBlur = 20; ctx.shadowColor = "#FF00FF";
-ctx.textAlign = "center";
-ctx.font = "bold 22px Arial";
-const gradient = ctx.createLinearGradient(dateX - 70, dateY, dateX + 70, dateY);
-gradient.addColorStop(0, "#FF0000"); gradient.addColorStop(0.5, "#00FF00"); gradient.addColorStop(1, "#0000FF");
-ctx.fillStyle = "#FFFFFF"; 
-ctx.fillText(`| ${currentDate}`, dateX, dateY);
-ctx.shadowBlur = 0;
-ctx.strokeStyle = gradient; ctx.lineWidth = 1.5;
-ctx.strokeText(`| ${currentDate}`, dateX, dateY);
-
-const buffer = canvas.toBuffer("image/png");
-fs.writeFileSync(cachePath, buffer);
-
-// STEP 2: Send & Delete Checking
-return api.sendMessage({ attachment: fs.createReadStream(cachePath) }, threadID, async (err) => {
-if (!err) api.unsendMessage(sendChecking.messageID);
-if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
-}, messageID);
-
-} catch (e) {
-console.error(e);
-api.unsendMessage(sendChecking.messageID);
-return api.sendMessage("❌ Error generating status!", threadID, messageID);
-}
-}
+		if (canEdit) {
+			await Promise.race([animating, new Promise(resolve => setTimeout(resolve, frames.length * EDIT_INTERVAL + 3000))]);
+			stopped = true;
+			const edited = await editSafely(body, msg.messageID);
+			if (edited)
+				return;
+		}
+		return message.reply(body);
+	}
 };
