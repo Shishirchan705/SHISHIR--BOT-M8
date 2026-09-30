@@ -124,7 +124,7 @@ module.exports = {
 ┃ 📅 𓆩𝐃𝐀𝐓𝐄𓆪:𓆩${date}𓆪
 ┃ 👑 𓆩𝐎𝐖𝐍𝐄𝐑𓆪: 《𓆩${owner}𓆪》
 ┃ ⚡ 𓆩𝐒𝐓𝐀𝐓𝐔𝐒𓆪: 《𓆩𝐎𝐍𝐋𝐈𝐍𝐄𓆪》
-╰━━━〔《𓆩𝐒𝐈𝐙𝐔𝐊𝐀𓆪》〕━━━╯`,
+╰━━━〔《𓆩𝑺𝑯𝑰𝑺𝑯𝑰𝑹𓆪》〕━━━╯`,
 			attachment: await getStreamFromURL(gif)
 		});
 	}
