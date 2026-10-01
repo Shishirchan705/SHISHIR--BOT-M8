@@ -30,6 +30,13 @@ const cuteVideos = [
 "https://files.catbox.moe/059wqi.mp4",
 "https://files.catbox.moe/13iaas.mp4",
 "https://files.catbox.moe/xfb3ku.mp4"
+"https://files.catbox.moe/7qv8tw.mp4",
+"https://files.catbox.moe/ti6fg6.mp4",
+"https://files.catbox.moe/pjl0rg.mp4",
+"https://files.catbox.moe/05v0kq.mp4",
+"https://files.catbox.moe/320kyn.mp4",
+"https://files.catbox.moe/ihzmeu.mp4",
+"https://files.catbox.moe/pa6r9r.mp4"
 ];
 
 const randomUrl =
