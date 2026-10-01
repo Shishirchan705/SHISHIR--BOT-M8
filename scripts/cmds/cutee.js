@@ -1,68 +1,91 @@
-const login = require("fb-chat-api");
 const axios = require("axios");
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
 
-// বটের কনফিগারেশন এবং ওনার ইনফো
-const config = {
-    ownerName: "Shishir (শিশির)",
-    email: "unknown ",
-    password: "unknown "
-};
+module.exports = {
+config: {
+name: "cutee",
+aliases: ["cute", "catcute"],
+version: "2.0.0",
+author: "SHISHIR",
+countDown: 5,
+role: 0,
+category: "media",
+shortDescription: {
+en: "Send a random cute video"
+},
+longDescription: {
+en: "Sends a random cute video from Catbox."
+},
+guide: {
+en: "{pn}"
+}
+},
 
-login({ email: config.email, password: config.password }, (err, api) => {
-    if (err) return console.error("Login failed:", err);
-
-    console.log(`Bot started successfully! Owner: ${config.ownerName}`);
-
-    api.listenMqtt(async (err, event) => {
-        if (err) return console.error(err);
-
-        if (event.type === "message" && event.body) {
-            const text = event.body.trim().toLowerCase();
-
-            if (text === "cutee" || text === "!cutee") {
-                
-                // ক্যাটবক্সের ভিডিও ডাইরেক্ট লিঙ্কগুলো
-                const cuteVideos = [
-    "https://files.catbox.moe/vklati.mp4",
-    "https://files.catbox.moe/tytytf.mp4",
-    "https://files.catbox.moe/0q76xu.mp4",
-    "https://files.catbox.moe/059wqi.mp4",
-    "https://files.catbox.moe/13iaas.mp4",
-    "https://files.catbox.moe/xfb3ku.mp4"
+onStart: async function ({ message }) {
+const cuteVideos = [
+"https://files.catbox.moe/vklati.mp4",
+"https://files.catbox.moe/tytytf.mp4",
+"https://files.catbox.moe/0q76xu.mp4",
+"https://files.catbox.moe/059wqi.mp4",
+"https://files.catbox.moe/13iaas.mp4",
+"https://files.catbox.moe/xfb3ku.mp4"
 ];
 
-                const randomUrl = cuteVideos[Math.floor(Math.random() * cuteVideos.length)];
-                const tempFilePath = path.join(__dirname, "temp_cute.mp4");
+const randomUrl =
+  cuteVideos[Math.floor(Math.random() * cuteVideos.length)];
 
-                try {
-                    const response = await axios({
-                        method: 'get',
-                        url: randomUrl,
-                        responseType: 'stream'
-                    });
+const tempFilePath = path.join(
+  __dirname,
+  `cutee_${Date.now()}.mp4`
+);
 
-                    const writer = fs.createWriteStream(tempFilePath);
-                    response.data.pipe(writer);
+try {
+  const response = await axios({
+    method: "GET",
+    url: randomUrl,
+    responseType: "stream",
+    timeout: 120000
+  });
 
-                    writer.on('finish', () => {
-                        // ওনারের নাম মেসেজের ক্যাপশনে সুন্দরভাবে সাজিয়ে দেওয়া হলো
-                        const msgData = {
-                            body: `Here is your cute video! ✨🐱\n\n👑 Bot Owner: ${config.ownerName}`,
-                            attachment: fs.createReadStream(tempFilePath)
-                        };
+  const writer = fs.createWriteStream(tempFilePath);
 
-                        api.sendMessage(msgData, event.threadID, () => {
-                            fs.unlinkSync(tempFilePath);
-                        }, event.messageID);
-                    });
+  response.data.pipe(writer);
 
-                } catch (error) {
-                    console.error("Video send error:", error);
-                    api.sendMessage(`Sorry, video send করতে সমস্যা হয়েছে! 😿\nContact Owner: ${config.ownerName}`, event.threadID, event.messageID);
-                }
-            }
-        }
-    });
-});
+  await new Promise((resolve, reject) => {
+    writer.on("finish", resolve);
+    writer.on("error", reject);
+  });
+
+  await message.reply({
+    body:
+      "╭━━━〔 𝗖𝗨𝗧𝗘 𝗩𝗜𝗗𝗘𝗢 〕━━━╮\n" +
+      "┃ ✨ 𝗛𝗲𝗿𝗲 𝗶𝘀 𝗮 𝗰𝘂𝘁𝗲 𝘃𝗶𝗱𝗲𝗼!\n" +
+      "┃ 🐱 𝗘𝗻𝗷𝗼𝘆 𝘁𝗵𝗲 𝘃𝗶𝗱𝗲𝗼 ✨\n" +
+      "┃\n" +
+      "┃ 👑 𝗢𝘄𝗻𝗲𝗿: 𝗦𝗛𝗜𝗦𝗛𝗜𝗥\n" +
+      "╰━━━━━━━━━━━━━━━━━━╯",
+    attachment: fs.createReadStream(tempFilePath)
+  });
+
+  setTimeout(() => {
+    if (fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath);
+    }
+  }, 5000);
+
+} catch (error) {
+  console.error("Cutee video error:", error);
+
+  if (fs.existsSync(tempFilePath)) {
+    fs.unlinkSync(tempFilePath);
+  }
+
+  return message.reply(
+    "❌ 𝗖𝘂𝘁𝗲 𝘃𝗶𝗱𝗲𝗼 𝘀𝗲𝗻𝗱 𝗸𝗼𝗿𝗮 𝗷𝗮𝘆𝗻𝗶।\n" +
+    "🔄 𝗣𝗹𝗲𝗮𝘀𝗲 𝘁𝗿𝘆 𝗮𝗴𝗮𝗶𝗻!"
+  );
+}
+
+}
+};
