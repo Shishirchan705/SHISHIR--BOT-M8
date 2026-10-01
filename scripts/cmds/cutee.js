@@ -6,8 +6,8 @@ const path = require("path");
 // বটের কনফিগারেশন এবং ওনার ইনফো
 const config = {
     ownerName: "Shishir (শিশির)",
-    email: "Shishir7837@gmail.com",
-    password: "shishir728"
+    email: "unknown ",
+    password: "unknown "
 };
 
 login({ email: config.email, password: config.password }, (err, api) => {
@@ -25,10 +25,13 @@ login({ email: config.email, password: config.password }, (err, api) => {
                 
                 // ক্যাটবক্সের ভিডিও ডাইরেক্ট লিঙ্কগুলো
                 const cuteVideos = [
-                    "https://files.catbox.moe/vklati.mp4",
-                    "https://files.catbox.moe/tytytf.mp4"
-                    "https://files.catbox.moe/0q76xu.mp4"
-                ];
+    "https://files.catbox.moe/vklati.mp4",
+    "https://files.catbox.moe/tytytf.mp4",
+    "https://files.catbox.moe/0q76xu.mp4",
+    "https://files.catbox.moe/059wqi.mp4",
+    "https://files.catbox.moe/13iaas.mp4",
+    "https://files.catbox.moe/xfb3ku.mp4"
+];
 
                 const randomUrl = cuteVideos[Math.floor(Math.random() * cuteVideos.length)];
                 const tempFilePath = path.join(__dirname, "temp_cute.mp4");
