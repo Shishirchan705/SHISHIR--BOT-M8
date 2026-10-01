@@ -108,7 +108,7 @@ module.exports = {
         }
 
         msg += `╰─────────────────────\n`;
-        msg += `✨ Operator: ${operator || "SHISHIR"}`;
+        msg += `✨ Operator: ${operator || "SHISHIR "}`;
 
         return message.reply(msg);
       } else {
