@@ -153,9 +153,9 @@ function findFlag(args, names) {
   return { found: false, value: null, index: -1 };
 }
 
-function react(api, id, threadID, emoji) {
+function react(api, id, emoji) {
   try {
-    api.setMessageReaction(emoji, id, threadID);
+    api.setMessageReaction(emoji, id);
   } catch (e) {}
 }
 
@@ -206,18 +206,18 @@ module.exports = {
 
     try {
       if (first === "--models") {
-        react(api, event.messageID, event.threadID, REACT_WAIT);
+        react(api, event.messageID, REACT_WAIT);
         await getModels();
         const lines = Object.entries(MODELS)
           .map(([alias, id]) => `- ${alias} → ${id}`)
           .slice(0, 40);
-        react(api, event.messageID, event.threadID, REACT_DONE);
+        react(api, event.messageID, REACT_DONE);
         return message.reply(
           `NKX GEN models:\n${lines.join("\n")}\n\nUse: gen --<alias> <prompt>`
         );
       }
     } catch (e) {
-      react(api, event.messageID, event.threadID, REACT_FAIL);
+      react(api, event.messageID, REACT_FAIL);
       return message.reply(e.message || "The generation server is unreachable.");
     }
 
@@ -251,12 +251,12 @@ module.exports = {
 
     const reference = extractImageUrl(event) || imageFlag.value || null;
 
-    react(api, event.messageID, event.threadID, REACT_WAIT);
+    react(api, event.messageID, REACT_WAIT);
 
     try {
       await getModels();
     } catch (e) {
-      react(api, event.messageID, event.threadID, REACT_FAIL);
+      react(api, event.messageID, REACT_FAIL);
       return message.reply(e.message);
     }
 
@@ -266,7 +266,7 @@ module.exports = {
 
     const alias = pickModel(modelFlag);
     if (!alias) {
-      react(api, event.messageID, event.threadID, REACT_FAIL);
+      react(api, event.messageID, REACT_FAIL);
       return message.reply(`Unknown model "${modelFlag.slice(2)}". Use gen --models to see the list.`);
     }
 
@@ -282,30 +282,30 @@ module.exports = {
 
     if (reference) {
       if (!/^https?:\/\//i.test(reference)) {
-        react(api, event.messageID, event.threadID, REACT_FAIL);
+        react(api, event.messageID, REACT_FAIL);
         return message.reply("I could not read that image. Try replying to a photo instead.");
       }
       payload.image_urls = [reference];
     }
 
     try {
-      react(api, event.messageID, event.threadID, REACT_WORK);
+      react(api, event.messageID, REACT_WORK);
       const res = await client.post("/api/generate", payload);
 
       if (res.status >= 400) {
-        react(api, event.messageID, event.threadID, REACT_FAIL);
+        react(api, event.messageID, REACT_FAIL);
         return message.reply(formatError(res));
       }
 
       const d = res.data;
       const url = d.url || d.thumbnail;
       if (!url) {
-        react(api, event.messageID, event.threadID, REACT_FAIL);
+        react(api, event.messageID, REACT_FAIL);
         return message.reply("The job finished but returned no file.");
       }
 
       const filePath = await download(url);
-      react(api, event.messageID, event.threadID, REACT_DONE);
+      react(api, event.messageID, REACT_DONE);
 
       await message.reply({
         attachment: fs.createReadStream(filePath)
@@ -313,7 +313,7 @@ module.exports = {
       fs.remove(filePath).catch(() => {});
     } catch (e) {
       console.error("[GEN COMMAND ERROR]:", e?.response?.data || e.message || e);
-      react(api, event.messageID, event.threadID, REACT_FAIL);
+      react(api, event.messageID, REACT_FAIL);
       message.reply("An error occurred while generating. Please try again.");
     }
   }
@@ -324,12 +324,12 @@ async function generateMusic({ api, message, event, prompt, versionFlag }) {
   const allowed = ["v3.5", "v4.0"];
 
   if (!allowed.includes(version)) {
-    react(api, event.messageID, event.threadID, REACT_FAIL);
+    react(api, event.messageID, REACT_FAIL);
     return message.reply(`Unknown music version "${version}". Available: ${allowed.join(", ")}`);
   }
 
   try {
-    react(api, event.messageID, event.threadID, REACT_WORK);
+    react(api, event.messageID, REACT_WORK);
     const res = await client.post("/api/music", {
       prompt,
       model: version,
@@ -337,19 +337,19 @@ async function generateMusic({ api, message, event, prompt, versionFlag }) {
     });
 
     if (res.status >= 400) {
-      react(api, event.messageID, event.threadID, REACT_FAIL);
+      react(api, event.messageID, REACT_FAIL);
       return message.reply(formatError(res));
     }
 
     const d = res.data;
     const url = d.audio_url || d.cover;
     if (!url) {
-      react(api, event.messageID, event.threadID, REACT_FAIL);
+      react(api, event.messageID, REACT_FAIL);
       return message.reply("The track finished but returned no file.");
     }
 
     const filePath = await download(url);
-    react(api, event.messageID, event.threadID, REACT_DONE);
+    react(api, event.messageID, REACT_DONE);
 
     await message.reply({
       body: d.title || prompt,
@@ -358,7 +358,7 @@ async function generateMusic({ api, message, event, prompt, versionFlag }) {
     fs.remove(filePath).catch(() => {});
   } catch (e) {
     console.error("[GEN MUSIC ERROR]:", e?.response?.data || e.message || e);
-    react(api, event.messageID, event.threadID, REACT_FAIL);
+    react(api, event.messageID, REACT_FAIL);
     message.reply("An error occurred while generating music. Please try again.");
   }
 }
@@ -371,4 +371,4 @@ async function download(url) {
   const file = await axios.get(url, { responseType: "arraybuffer", timeout: 120000 });
   await fs.writeFile(filePath, Buffer.from(file.data));
   return filePath;
-    }
+  };
