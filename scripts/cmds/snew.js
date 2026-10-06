@@ -5,7 +5,7 @@ const path = require("path");
 module.exports = {
   config: {
     name: "snews",
-    aliases: ["news"],
+    aliases: ["news2"],
     version: "1.0.0",
     author: "Toshiro Editz",
     countDown: 5,
