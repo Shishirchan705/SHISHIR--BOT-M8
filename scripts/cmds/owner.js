@@ -16,7 +16,7 @@ module.exports = {
   },
 
   onStart: async function ({ api, event }) {
-    const ownerText = 
+    const ownerText =
 `╔═══❖𝗢𝗪𝗡𝗘𝗥 𝗜𝗡𝗙𝗢❖═══╗
 
 ⋆✦⋆⎯⎯⎯⎯⎯⎯⎯⎯⎯⋆✦⋆
@@ -61,10 +61,10 @@ module.exports = {
 ⋆✦⋆═══🅲🅾🅽🆃🅰🅲🆃═══⋆✦⋆
 
 [📞] 𝗪𝗛𝗔𝗧𝗦𝗔𝗣𝗣
-➤ 01749--26
+➤ https://wa.me/+61592841571046
 
 [🌍] 𝐅𝐀𝐂𝐄𝐁𝐎𝐎𝐊 𝐈𝐃 (❶)
-➤ https://www.facebook.com/share/1KbkSRUCJE/
+➤ https://m.me/61592841571046
 
 [🌍] 𝐅𝐀𝐂𝐄𝐁𝐎𝐎𝐊 𝐈𝐃 (❷)
 ➤ Vai 2nd account bolte kisui nai sob saspent hoiye jai🙂
@@ -78,10 +78,9 @@ module.exports = {
     }
 
     // 🖼️ Owner Image - Imgur
-    const imgLink = "";
+    const imgLink ="";
 
     // 🎥 Owner Video - Catbox
-    // এখানে তোমার Catbox video link বসাবে
     const videoLink = "https://files.catbox.moe/e1iber.mp4";
 
     const imgPath = path.join(cacheDir, "owner.jpg");
@@ -104,7 +103,7 @@ module.exports = {
           .on("error", reject);
       });
 
-      // Send image + text
+      // Send image + owner info
       await new Promise((resolve, reject) => {
         api.sendMessage(
           {
@@ -142,7 +141,6 @@ module.exports = {
     } catch (error) {
       console.error("OWNER ERROR:", error);
 
-      // Clean files if error happens
       if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
       if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
 
