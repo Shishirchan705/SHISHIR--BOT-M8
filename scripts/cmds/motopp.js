@@ -7,105 +7,156 @@ module.exports = {
   config: {
     name: "motopp",
     aliases: ["moto", "ppmoto", "mentionmoto"],
-    version: "1.0",
+    version: "2.0",
     author: "SHISHIR",
     countDown: 5,
     role: 0,
-    shortDescription: "Mention/Reply PP Moto",
+    shortDescription: "Mention/Reply PP Moto Edit",
     category: "fun"
   },
 
   onStart: async function ({ api, event, message }) {
+    var bgPath, ppPath, outputPath;
+
     try {
 
-      // 🖼️ YOUR BACKGROUND
-      const BACKGROUND_URL =
+      // ==========================
+      // 🖼️ YOUR IMGUR BACKGROUND
+      // ==========================
+      var BACKGROUND_URL =
         "https://i.imgur.com/jkLYQ08.jpeg";
 
-      // 👤 Find target user
-      let targetID = null;
+      // ==========================
+      // 👤 FIND TARGET USER
+      // ==========================
+      var targetID = null;
+      var isReply = false;
 
-      // Reply করলে
-      if (event.messageReply?.senderID) {
+      // Reply
+      if (
+        event.messageReply &&
+        event.messageReply.senderID
+      ) {
         targetID = event.messageReply.senderID;
+        isReply = true;
       }
 
-      // Mention করলে
+      // Mention
       if (!targetID && event.mentions) {
-        const ids = Object.keys(event.mentions);
+        var ids = Object.keys(event.mentions);
+
         if (ids.length > 0) {
           targetID = ids[0];
+          isReply = false;
         }
       }
 
       if (!targetID) {
         return message.reply(
-          "⚠️ কাউকে Mention করো অথবা তার মেসেজে Reply করে command দাও!"
+          "⚠️ কাউকে Mention করো অথবা তার মেসেজে Reply করে `motopp` দাও!"
         );
       }
 
-      const cacheDir = path.join(__dirname, "cache");
+      // ==========================
+      // 📁 CACHE
+      // ==========================
+      var cacheDir = path.join(__dirname, "cache");
+
       await fs.ensureDir(cacheDir);
 
-      const time = Date.now();
+      var time = Date.now();
 
-      const bgPath = path.join(
+      bgPath = path.join(
         cacheDir,
-        `moto_bg_${time}.jpg`
+        "motopp_bg_" + time + ".jpg"
       );
 
-      const ppPath = path.join(
+      ppPath = path.join(
         cacheDir,
-        `moto_pp_${time}.jpg`
+        "motopp_pp_" + time + ".jpg"
       );
 
-      const outputPath = path.join(
+      outputPath = path.join(
         cacheDir,
-        `moto_result_${time}.jpg`
+        "motopp_" + time + ".jpg"
       );
 
-      // 📥 Download background
-      const bgData = await axios.get(BACKGROUND_URL, {
+      // ==========================
+      // 📥 DOWNLOAD BACKGROUND
+      // ==========================
+      var bgData = await axios({
+        method: "GET",
+        url: BACKGROUND_URL,
         responseType: "arraybuffer",
         timeout: 30000
       });
 
       await fs.writeFile(bgPath, bgData.data);
 
-      // 👤 Get user info
-      const userInfo = await new Promise((resolve, reject) => {
-        api.getUserInfo(targetID, (err, info) => {
-          if (err) return reject(err);
-          resolve(info);
-        });
+      // ==========================
+      // 👤 GET USER INFORMATION
+      // ==========================
+      var userInfo = await new Promise(function(resolve, reject) {
+
+        api.getUserInfo(
+          targetID,
+          function(err, info) {
+
+            if (err) {
+              return reject(err);
+            }
+
+            resolve(info);
+          }
+        );
+
       });
 
-      const profileUrl =
-        userInfo?.[targetID]?.profileUrl ||
-        userInfo?.[targetID]?.thumbSrc;
+      var user = userInfo[targetID];
 
-      if (!profileUrl) {
-        throw new Error("Profile picture পাওয়া যায়নি");
+      if (!user) {
+        throw new Error("User information পাওয়া যায়নি");
       }
 
-      // 📥 Download PP
-      const ppData = await axios.get(profileUrl, {
+      // ==========================
+      // 🖼️ PROFILE IMAGE URL
+      // ==========================
+      var profileUrl =
+        user.thumbSrc ||
+        user.profileUrl ||
+        user.avatar ||
+        user.picture;
+
+      if (!profileUrl) {
+        throw new Error(
+          "Profile picture URL পাওয়া যায়নি"
+        );
+      }
+
+      // ==========================
+      // 📥 DOWNLOAD PROFILE PIC
+      // ==========================
+      var ppData = await axios({
+        method: "GET",
+        url: profileUrl,
         responseType: "arraybuffer",
         timeout: 30000
       });
 
       await fs.writeFile(ppPath, ppData.data);
 
-      // 🎨 Load images
-      const bg = await loadImage(bgPath);
-      const pp = await loadImage(ppPath);
+      // ==========================
+      // 🎨 LOAD IMAGES
+      // ==========================
+      var bg = await loadImage(bgPath);
+      var pp = await loadImage(ppPath);
 
-      const canvas = createCanvas(
+      var canvas = createCanvas(
         bg.width,
         bg.height
       );
 
-      const ctx = canvas.getContext("2d");
+      var ctx = canvas.getContext("2d");
 
       // Background
       ctx.drawImage(
@@ -116,68 +167,81 @@ module.exports = {
         bg.height
       );
 
-      // =========================
-      // 👤 PROFILE PICTURE
-      // =========================
-
-      const ppSize =
+      // ==========================
+      // 👤 PROFILE SIZE
+      // ==========================
+      var ppSize =
         Math.min(bg.width, bg.height) * 0.19;
 
-      const x =
+      var x =
         (bg.width - ppSize) / 2;
 
-      const y =
+      var y =
         bg.height * 0.035;
 
-      // 🔵 Glow
+      var centerX =
+        x + ppSize / 2;
+
+      var centerY =
+        y + ppSize / 2;
+
+      // ==========================
+      // 🔵 GLOW
+      // ==========================
       ctx.save();
 
       ctx.shadowColor = "#00e5ff";
-      ctx.shadowBlur = 30;
+      ctx.shadowBlur = 25;
 
       ctx.beginPath();
 
       ctx.arc(
-        x + ppSize / 2,
-        y + ppSize / 2,
+        centerX,
+        centerY,
         ppSize / 2 + 7,
         0,
         Math.PI * 2
       );
 
       ctx.strokeStyle = "#00e5ff";
-      ctx.lineWidth = 10;
+      ctx.lineWidth = 9;
       ctx.stroke();
 
       ctx.restore();
 
-      // 👤 Circular PP
+      // ==========================
+      // 👤 CIRCULAR PROFILE PIC
+      // ==========================
       ctx.save();
 
       ctx.beginPath();
 
       ctx.arc(
-        x + ppSize / 2,
-        y + ppSize / 2,
+        centerX,
+        centerY,
         ppSize / 2,
         0,
         Math.PI * 2
       );
 
+      ctx.closePath();
       ctx.clip();
 
-      const scale = Math.max(
+      var scale = Math.max(
         ppSize / pp.width,
         ppSize / pp.height
       );
 
-      const newWidth = pp.width * scale;
-      const newHeight = pp.height * scale;
+      var newWidth =
+        pp.width * scale;
 
-      const ppX =
+      var newHeight =
+        pp.height * scale;
+
+      var ppX =
         x + (ppSize - newWidth) / 2;
 
-      const ppY =
+      var ppY =
         y + (ppSize - newHeight) / 2;
 
       ctx.drawImage(
@@ -190,95 +254,100 @@ module.exports = {
 
       ctx.restore();
 
-      // ⚪ PP Border
+      // ==========================
+      // ⚪ WHITE BORDER
+      // ==========================
       ctx.beginPath();
 
       ctx.arc(
-        x + ppSize / 2,
-        y + ppSize / 2,
+        centerX,
+        centerY,
         ppSize / 2,
         0,
         Math.PI * 2
       );
 
       ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 6;
+      ctx.lineWidth = 5;
       ctx.stroke();
 
-      // 👑 Crown
+      // ==========================
+      // 👑 CROWN
+      // ==========================
       ctx.font =
-        `${Math.floor(ppSize * 0.20)}px Arial`;
+        Math.floor(ppSize * 0.20) + "px Arial";
 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
       ctx.fillText(
         "👑",
-        x + ppSize / 2,
-        y - 5
+        centerX,
+        y - 3
       );
 
-      // =========================
-      // 💬 MENTION / REPLY LABEL
-      // =========================
-
-      const isReply =
-        !!event.messageReply?.senderID;
-
-      const label =
+      // ==========================
+      // 💬 LABEL
+      // ==========================
+      var label =
         isReply ? "REPLIED" : "MENTIONED";
 
-      const labelY =
-        y + ppSize + 25;
+      var labelY =
+        y + ppSize + 22;
 
       ctx.font =
-        `bold ${Math.floor(ppSize * 0.10)}px Arial`;
+        "bold " +
+        Math.floor(ppSize * 0.10) +
+        "px Arial";
 
-      const textWidth =
+      var textWidth =
         ctx.measureText(label).width;
 
-      const boxWidth =
-        textWidth + 45;
+      var boxWidth =
+        textWidth + 40;
 
-      const boxHeight =
-        ppSize * 0.16;
+      var boxHeight =
+        Math.floor(ppSize * 0.17);
 
-      const boxX =
-        x + ppSize / 2 - boxWidth / 2;
+      var boxX =
+        centerX - boxWidth / 2;
 
-      // Black label
+      // ==========================
+      // 🖤 LABEL BOX
+      // ==========================
       ctx.fillStyle =
         "rgba(0,0,0,0.78)";
 
       ctx.beginPath();
 
-      ctx.roundRect(
+      // roundRect-এর বদলে normal rectangle
+      ctx.rect(
         boxX,
         labelY,
         boxWidth,
-        boxHeight,
-        15
+        boxHeight
       );
 
       ctx.fill();
 
-      // Label
+      // ==========================
+      // 🤍 LABEL TEXT
+      // ==========================
       ctx.fillStyle = "#ffffff";
 
       ctx.fillText(
         label,
-        x + ppSize / 2,
+        centerX,
         labelY + boxHeight / 2
       );
 
-      // =========================
-      // 💾 SAVE
-      // =========================
-
-      const buffer =
+      // ==========================
+      // 💾 CREATE IMAGE
+      // ==========================
+      var buffer =
         canvas.toBuffer(
           "image/jpeg",
-          { quality: 0.95 }
+          0.95
         );
 
       await fs.writeFile(
@@ -286,34 +355,41 @@ module.exports = {
         buffer
       );
 
-      // 📤 SEND
+      // ==========================
+      // 📤 SEND IMAGE
+      // ==========================
       await message.reply({
         body: isReply
-          ? "😂 Reply দিলেই Moto! 🏍️🔥"
-          : "😂 Mention করলেই Moto! 🏍️🔥",
+          ? "😂 𝙍𝙀𝙋𝙇𝙄𝙀𝘿 𝙈𝙊𝙏𝙊 🏍️🔥"
+          : "😂 𝙈𝙀𝙉𝙏𝙄𝙊𝙉 𝙈𝙊𝙏𝙊 🏍️🔥",
 
         attachment:
           fs.createReadStream(outputPath)
       });
 
-      // 🧹 Cleanup
-      setTimeout(async () => {
+      // ==========================
+      // 🧹 CLEAN
+      // ==========================
+      setTimeout(function() {
+
         try {
-          await fs.remove(bgPath);
-          await fs.remove(ppPath);
-          await fs.remove(outputPath);
+          if (bgPath) fs.removeSync(bgPath);
+          if (ppPath) fs.removeSync(ppPath);
+          if (outputPath) fs.removeSync(outputPath);
         } catch (e) {}
-      }, 10000);
+
+      }, 15000);
 
     } catch (error) {
 
       console.error(
-        "MOTO PP ERROR:",
+        "❌ MOTOPP ERROR:",
         error
       );
 
       return message.reply(
-        "❌ Moto PP তৈরি করতে সমস্যা হয়েছে!"
+        "❌ 𝙈𝙊𝙏𝙊𝙋𝙋 𝙀𝙍𝙍𝙊𝙍!\n" +
+        "⚠️ Profile Picture অথবা Canvas সমস্যা হয়েছে।"
       );
     }
   }
