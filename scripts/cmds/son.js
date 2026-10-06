@@ -7,40 +7,41 @@ module.exports = {
     author: "ARIYAN | shot",
     countDown: 5,
     role: 2,
-    category: "fight",
-    shortDescription: { en: "Automated insults for a mentioned user" },
+    category: "fun",
+    shortDescription: { en: "Automated fun roasts for a mentioned user" },
     guide: { en: "{pn} @mention | {pn} off" }
   },
 
   onStart: async function ({ api, event, args, message }) {
-    const { threadID, messageID, mentions, senderID } = event;
+    const { threadID, mentions } = event;
 
+    // বোট বন্ধ করার কমান্ড
     if (args[0] === "off") {
       if (!activeFights[threadID]) {
-        return message.reply(" age on kor chdna 😞");
+        return message.reply("shishir bss আগে তো চালু করতে হবে ভাই tar por xudi! 😞");
       }
       delete activeFights[threadID];
-      return message.reply("chdn off korlam ja muri kha ! 🗿");
+      return message.reply("xuda  অফ করলাম! 🗿");
     }
 
     const mention = Object.keys(mentions)[0];
     if (!mention) {
-      return message.reply("mention den boss ore cde dei aktu.😞");
+      return message.reply("kare xudbo boss bolo sawya fata dei aktu! 😞");
     }
 
-    
     if (activeFights[threadID]) {
-      return message.reply("ager Jon er cdn off kor age 🙂🙏");
+      return message.reply("age tare cdna off koro shishir boss! 🙂🙏");
     }
 
-    api.getUserInfo(mention, (err, userInfo) => {
-      if (err) return message.reply("user info err !oy Sala akta gay..!¡");
+    try {
+      const userInfo = await api.getUserInfo(mention);
+      const user = userInfo[mention];
 
       let genderText;
-      switch (userInfo[mention].gender) {
-        case 1: genderText = "মাইয়া"; break;
-        case 2: genderText = "পোলা"; break;
-        default: genderText = "হিজড়া";
+      switch (user?.gender) {
+        case 1: genderText = "মেয়ে"; break;
+        case 2: genderText = "ছেলে"; break;
+        default: genderText = "বন্ধু";
       }
 
       activeFights[threadID] = {
@@ -49,11 +50,14 @@ module.exports = {
         gender: genderText
       };
 
-      return message.reply(`😆 কিরে ${mentions[mention].replace("@", "")}! কেমন আছিস..‽`);
-    });
+      const targetName = mentions[mention].replace("@", "");
+      return message.reply(`😆 কিরে ${targetName}! কেমন আছিস? এবার তোর সাথে একটু মজা হবে!`);
+    } catch (err) {
+      return message.reply("ইউজার ইনফো পেতে সমস্যা হয়েছে!");
+    }
   },
 
-  onChat: async function ({ api, event, message }) {
+  onChat: async function ({ event, message }) {
     const { threadID, senderID } = event;
 
     if (!activeFights[threadID]) return;
