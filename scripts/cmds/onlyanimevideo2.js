@@ -13,7 +13,7 @@ module.exports.config = {
     role: 0,
     category: "media",
     guide: { 
-        en: "Use {p}oav2 | {p}oav2 sync | Comment '🛜' to pull random video" 
+        en: "Use {p}oav2 | {p}oav2 sync | Comment '🌡️' to pull random video" 
     }
 };
 
@@ -21,7 +21,7 @@ module.exports.onChat = async ({ api, event }) => {
     if (event.senderID == api.getCurrentUserID()) return;
 
     const msg = event.body ? event.body.trim() : "";
-    if (msg === "🛜") {
+    if (msg === "🌡️") {
         return handleDriveMedia(api, event);
     }
 };
