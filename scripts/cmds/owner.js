@@ -20,7 +20,7 @@ module.exports = {
         const videoPath = path.join(cacheDir, 'shishir_owner_video.mp4');
 
         // 🔗 আপনার Catbox ভিডিও লিংক (অবশ্যই ডাইরেক্ট .mp4 লিংক বসাবেন)
-        const catboxVideoUrl = "https://files.catbox.moe/e1iber.mp4"; 
+        const catboxVideoUrl = "https://files.catbox.moe/vujjw2.mp4"; 
 
         // 📜 শিশির ভাইয়ের ইউনিক স্টাইলিশ বায়ো
         const ownerDetails = `
