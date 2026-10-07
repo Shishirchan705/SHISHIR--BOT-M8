@@ -20,7 +20,7 @@ module.exports = {
         const videoPath = path.join(cacheDir, 'shishir_owner_video.mp4');
 
         // 🔗 আপনার Catbox ভিডিও লিংক (অবশ্যই ডাইরেক্ট .mp4 লিংক বসাবেন)
-        const catboxVideoUrl = "https://files.catbox.moe/vujjw2.mp4"; 
+        const catboxVideoUrl = "https://files.catbox.moe/v0jq4p.jpg"; 
 
         // 📜 শিশির ভাইয়ের ইউনিক স্টাইলিশ বায়ো
         const ownerDetails = `
@@ -60,7 +60,7 @@ module.exports = {
 
 💬 𝗢𝗪𝗡𝗘𝗥'𝗦 𝗡𝗢𝗧𝗘
 ━━━━━━───────━━━━━━
-"kono pblm hoile soja inbox lojjha xudaiyo na https://www.facebook.com/profile.php?id=61594799624906&mibextid=ZbWKwL!"
+"𝙆𝙤𝙣𝙤 𝙥𝙧𝙤𝙗𝙡𝙚𝙢 𝙝𝙤𝙞𝙡𝙚 𝙨𝙤𝙟𝙖 𝙄𝙣𝙗𝙤𝙭 𝙡𝙤𝙟𝙟𝙖 𝙭𝙪𝙙𝙖𝙞𝙮𝙤 😎🔥 na https://www.facebook.com/profile.php?id=61594799624906&mibextid=ZbWKwL!"
 
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
       ✨ 𝗗𝗲𝘃𝗲𝗹𝗼𝗽𝗲𝗱 𝗕𝘆 𝗦𝗵𝗶𝘀𝗵𝗶𝗿 ✨
