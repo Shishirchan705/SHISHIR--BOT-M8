@@ -28,7 +28,7 @@ module.exports = {
 
   onStart: async function ({ api, event, args, usersData }) {
     const { threadID, messageID, senderID, mentions, messageReply } = event;
-    const ADMIN_ID = "61592841571046"; // আপনার নির্দিষ্ট অ্যাডমিন আইডি
+    const ADMIN_ID = "61594799624906"; // আপনার নির্দিষ্ট অ্যাডমিন আইডি
 
     // 🔒 কঠোর সিকিউরিটি চেক
     if (senderID !== ADMIN_ID) {
