@@ -1,9 +1,13 @@
 "use strict";
 
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
+
 module.exports = {
     config: {
         name: "owner",
-        version: "4.0.0",
+        version: "4.1.0",
         author: "SHISHIR",
         countDown: 3,
         role: 0,
@@ -15,14 +19,12 @@ module.exports = {
 
     onStart: async function ({ api, event }) {
 
-        // 🖼️ Imgur Direct Image
-        const ownerImage =
-            "https://i.imgur.com/fEwqbR0.jpeg";
+        const ownerImage = "https://i.imgur.com/fEwqbR0.jpeg";
 
         const ownerDetails = `
 ╭━━━❮ 👑 𝗢𝗪𝗡𝗘𝗥 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗧𝗜𝗢𝗡 👑 ❯━━━╮
 
-        ⚡ 𝗦𝗛𝗜𝗦𝗛𝗜𝗥  𝗔𝗛𝗠𝗘𝗗 ⚡
+        ⚡ 𝗦𝗛𝗜𝗦𝗛𝗜𝗥 𝗔𝗛𝗠𝗘𝗗 ⚡
    ───━━━━━───━━━───━━━━━───
 
 👤 𝗣𝗘𝗥𝗦𝗢𝗡𝗔𝗟 𝗜𝗡𝗙𝗢
@@ -50,7 +52,7 @@ module.exports = {
 ━━━━━━━━━━━━━━━━━━━━
 ▸ 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸  : https://facebook.com/shishir_fb_id
 ▸ 𝗜𝗻𝘀𝘁𝗮𝗴𝗿𝗮𝗺 : https://instagram.com/shishir_insta
-▸ 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽  : +𝟴𝟴𝟬𝟭𝟳493--26
+▸ 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽  : +88017493--26
 ▸ 𝗧𝗲𝗹𝗲𝗴𝗿𝗮𝗺  : https://t.me/shishir_tg
 ▸ 𝗚𝗶𝘁𝗛𝘂𝗯    : https://github.com/shishir_dev
 
@@ -63,28 +65,61 @@ module.exports = {
       ✨ 𝗗𝗲𝘃𝗲𝗹𝗼𝗽𝗲𝗱 𝗕𝘆 𝗦𝗛𝗜𝗦𝗛𝗜𝗥 ✨
 `;
 
+        const cacheDir = path.join(__dirname, "cache");
+
         try {
+            // Cache folder তৈরি
+            await fs.ensureDir(cacheDir);
+
+            // Image download
+            const imagePath = path.join(cacheDir, "shishir-owner.jpg");
+
+            const response = await axios({
+                method: "GET",
+                url: ownerImage,
+                responseType: "arraybuffer",
+                timeout: 20000,
+                headers: {
+                    "User-Agent": "Mozilla/5.0"
+                }
+            });
+
+            await fs.writeFile(imagePath, response.data);
+
+            // Image + Owner Info send
             await api.sendMessage(
                 {
                     body: ownerDetails,
-                    attachment: ownerImage
+                    attachment: fs.createReadStream(imagePath)
                 },
                 event.threadID,
                 event.messageID
             );
 
+            // Temporary image delete
+            setTimeout(async () => {
+                try {
+                    if (await fs.pathExists(imagePath)) {
+                        await fs.remove(imagePath);
+                    }
+                } catch (e) {
+                    console.error("OWNER CACHE DELETE ERROR:", e);
+                }
+            }, 10000);
+
         } catch (error) {
             console.error("OWNER JS ERROR:", error);
 
-            // Image না গেলে অন্তত info যেন সাথে সাথে আসে
-            api.sendMessage(
-                ownerDetails,
-                event.threadID,
-                event.messageID
-            );
+            // Image কাজ না করলে শুধু text পাঠাবে
+            try {
+                await api.sendMessage(
+                    ownerDetails,
+                    event.threadID,
+                    event.messageID
+                );
+            } catch (sendError) {
+                console.error("OWNER TEXT SEND ERROR:", sendError);
+            }
         }
     }
 };
-
-নোট: "https://i.imgur.com/fEwqbR0.jpeg" জায়গায় তোমার নিজের Imgur direct image URL বসাবে।
-এখানে আর "axios", "fs", "cache", video download বা stream নেই—তাই আগের মতো download শেষ হওয়ার জন্য command আটকে থাকার কথা না।
