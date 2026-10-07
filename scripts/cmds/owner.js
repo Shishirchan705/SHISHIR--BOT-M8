@@ -19,7 +19,7 @@ module.exports = {
 
     onStart: async function ({ api, event }) {
 
-        const ownerImage = "https://i.imgur.com/fEwqbR0.jpeg";
+        const ownerImage = "https://i.imgur.com/Boccigo.jpeg";
 
         const ownerDetails = `
 ╭━━━❮ 👑 𝗢𝗪𝗡𝗘𝗥 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗧𝗜𝗢𝗡 👑 ❯━━━╮
