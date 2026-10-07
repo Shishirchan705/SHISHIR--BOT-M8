@@ -1,101 +1,81 @@
 const axios = require("axios");
-
-const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
-const API_KEY = "xalman-hub";
-let apiBaseUrl = null;
-let apiConfigRequest = null;
-
-async function getApiBaseUrl() {
-  if (apiBaseUrl) return apiBaseUrl;
-
-  if (!apiConfigRequest) {
-    apiConfigRequest = axios
-      .get(API_CONFIG_URL, { timeout: 15000 })
-      .then(({ data }) => {
-        const baseUrl = data?.[API_KEY];
-
-        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
-          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
-        }
-
-        apiBaseUrl = baseUrl.replace(/\/+$/, "");
-        return apiBaseUrl;
-      })
-      .finally(() => {
-        apiConfigRequest = null;
-      });
-  }
-
-  return apiConfigRequest;
-}
 const fs = require("fs-extra");
-const path = require("path");
+
+const LANG_ALIASES = {
+	en: "en", english: "en",
+	bn: "bn", bengali: "bn", bangla: "bn",
+	hi: "hi", hindi: "hi",
+	ar: "ar", arabic: "ar",
+	fr: "fr", french: "fr",
+	de: "de", german: "de",
+	es: "es", spanish: "es",
+	ja: "ja", japanese: "ja",
+	ko: "ko", korean: "ko",
+	zh: "zh", chinese: "zh",
+	ru: "ru", russian: "ru",
+	pt: "pt", portuguese: "pt",
+	tr: "tr", turkish: "tr",
+	vi: "vi", vietnamese: "vi",
+	id: "id", indonesian: "id",
+};
 
 module.exports = {
-  config: {
-    name: "say2",
-    aliases: ["tts2"],
-    version: "1.1",
-    author: "xalman",
-    countDown: 5,
-    role: 0,
-    shortDescription: { en: "Text to Speech using Edge TTS" },
-    longDescription: { en: "Convert text to speech using Edge TTS API" },
-    category: "TTS",
-    guide: { en: "{pn} <text> or reply to a message\nExample: /say2 Hello world" }
-  },
+	config: {
+		name: "say",
+		aliases: ["tts", "speak"],
+		version: "2.0.0",
+		author: "SIFAT",
+		countDown: 5,
+		role: 0,
+		description: { en: "ᴛᴇxᴛ-ᴛᴏ-ꜱᴘᴇᴇᴄʜ ᴀᴜᴅɪᴏ" },
+		category: "utility",
+		guide: { en: "{pn} <ᴛᴇxᴛ> — ᴛᴛꜱ ɪɴ ᴇɴɢʟɪꜱʜ\n{pn} <ᴛᴇxᴛ> | <ʟᴀɴɢ> — ꜱᴘᴇᴄɪꜰʏ ʟᴀɴɢᴜᴀɢᴇ\n◈ ʀᴇᴘʟʏ ᴀ ᴍᴇꜱꜱᴀɢᴇ ᴛᴏ ʀᴇᴀᴅ ɪᴛ\n◈ ʟᴀɴɢꜱ: en, bn, hi, ar, fr, ko, ja, zh..." }
+	},
 
-  onStart: async function ({ api, event, args, message }) {
-    const { threadID, messageID, messageReply } = event;
-    let text = args.join(" ");
+	onStart: async function ({ args, message, event }) {
+		let text, lang = "en";
 
-    if (!text && messageReply && messageReply.body) {
-      text = messageReply.body;
-    }
+		if (event.type === "message_reply") {
+			text = event.messageReply.body;
+			if (args[0]) {
+				const lcode = (args[0] || "").toLowerCase();
+				lang = LANG_ALIASES[lcode] || lcode;
+			}
+		} else {
+			if (!args.length) return message.reply("⌀ ᴘʀᴏᴠɪᴅᴇ ᴛᴇxᴛ ᴏʀ ʀᴇᴘʟʏ ᴀ ᴍᴇꜱꜱᴀɢᴇ");
+			if (args.includes("|")) {
+				const parts = args.join(" ").split("|").map(a => a.trim());
+				text = parts[0];
+				const lcode = (parts[1] || "en").toLowerCase();
+				lang = LANG_ALIASES[lcode] || lcode;
+			} else {
+				text = args.join(" ");
+			}
+		}
 
-    if (!text) {
-      return message.reply("❌ Please provide text to speak or reply to a message.\nExample: /say2 Hello world");
-    }
+		if (!text || !text.trim()) return message.reply("⌀ ɴᴏ ᴛᴇxᴛ ꜰᴏᴜɴᴅ");
+		if (text.length > 500) text = text.slice(0, 500);
 
-    api.setMessageReaction("⏳", messageID, () => {}, true);
+		const tmpPath = `${__dirname}/tmp/tts_${Date.now()}.mp3`;
+		await fs.ensureDir(`${__dirname}/tmp`);
 
-    const cacheDir = path.join(__dirname, "cache");
-    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
-
-    try {
-      const apiUrl = `${await getApiBaseUrl()}/api/edgetts?text=${encodeURIComponent(text)}`;
-
-      const response = await axios.get(apiUrl, {
-        timeout: 30000,
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        },
-        responseType: "arraybuffer"
-      });
-
-      const contentType = response.headers["content-type"] || "audio/mpeg";
-
-      if (contentType.includes("audio") || contentType.includes("mp3") || contentType === "audio/mpeg") {
-        const filePath = path.join(cacheDir, `tts_${Date.now()}.mp3`);
-        fs.writeFileSync(filePath, Buffer.from(response.data));
-
-        api.setMessageReaction("✅", messageID, () => {}, true);
-
-        return api.sendMessage({
-          body: `🔊 ${text}`,
-          attachment: fs.createReadStream(filePath)
-        }, threadID, () => {
-          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        }, messageID);
-      } else {
-        const textData = response.data.toString("utf8");
-        throw new Error(textData.substring(0, 200) || "Invalid response from API");
-      }
-
-    } catch (err) {
-      console.error("TTS Error:", err);
-      api.setMessageReaction("❌", messageID, () => {}, true);
-      return message.reply("❌ Failed to generate audio. Please try again.");
-    }
-  }
+		try {
+			const chunks = text.match(/.{1,150}/g) || [text];
+			for (let i = 0; i < chunks.length; i++) {
+				const res = await axios({
+					method: "get",
+					url: `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodeURIComponent(chunks[i])}`,
+					responseType: "stream"
+				});
+				const writer = fs.createWriteStream(tmpPath, { flags: i === 0 ? "w" : "a" });
+				res.data.pipe(writer);
+				await new Promise(resolve => writer.on("finish", resolve));
+			}
+			await message.reply({ body: `🔊 ʟᴀɴɢ: ${lang}`, attachment: fs.createReadStream(tmpPath) });
+			setTimeout(() => fs.remove(tmpPath).catch(() => {}), 60000);
+		} catch {
+			fs.remove(tmpPath).catch(() => {});
+			return message.reply("⌀ ꜰᴀɪʟᴇᴅ ᴛᴏ ɢᴇɴᴇʀᴀᴛᴇ ᴀᴜᴅɪᴏ");
+		}
+	}
 };
