@@ -1,83 +1,84 @@
 module.exports = {
   config: {
     name: "tag",
-    alises: [],
-    category: 'box chat',
+    aliases: ["all", "everyone"],
+    category: "GROUP",
     role: 0,
-    author: 'dipto | Anik Islam Sadik',
+    author: "xalman",
     countDown: 3,
-    description: { en: 'Tags a user to the provided name or message reply.' },
-    guide: {
-      en: `1. Reply to a message\n2. Use {pm}tag [name]\n3. Use {pm}tag [name] [message]`
+    description: {
+      en: "Tag by reply, name or tag all members"
     },
+    guide: {
+      en: "{pm}tag [name] [msg]\n{pm}tag all [msg]\nReply + {pm}tag [msg]"
+    }
   },
+
   onStart: async ({ api, event, usersData, threadsData, args }) => {
     const { threadID, messageID, messageReply } = event;
+
     try {
-      const d = await threadsData.get(threadID);
-      const combined = d.members.map(gud => ({
-        Name: gud.name,
-        UserId: gud.userID
-      }));
+      const threadData = await threadsData.get(threadID);
 
-      let namesToTag = [];
-      let extraMessage = "";
-      let targetMessageID = messageID;
+      const members = threadData.members
+        .filter(m => m.inGroup === true)
+        .map(m => ({
+          name: m.name,
+          id: m.userID
+        }));
 
+      let tagUsers = [];
+      let text = "";
+      
       if (messageReply) {
-        targetMessageID = messageReply.messageID;
         const uid = messageReply.senderID;
         const name = await usersData.getName(uid);
-        namesToTag.push({ Name: name, UserId: uid });
-        extraMessage = args.join(' ');
-      } else {
-        if (args.length === 0) {
-          return api.sendMessage('❌ Format: tag [name] or tag [name] [message]', threadID, messageID);
+        tagUsers.push({ name, id: uid });
+        text = args.join(" ");
+      }
+
+      else if (args[0] && ["all", "cdi"].includes(args[0].toLowerCase())) {
+        tagUsers = members;
+        text = args.slice(1).join(" ");
+      }
+
+      else {
+        if (!args[0]) {
+          return api.sendMessage(
+            "⚠️ Name / reply / tag all",
+            threadID,
+            messageID
+          );
         }
 
-        const input = args.join(' ');
-        let searchName = "";
-        
-        if (input.includes('|')) {
-          const parts = input.split('|');
-          searchName = parts[0].trim().toLowerCase();
-          extraMessage = parts.slice(1).join('|').trim();
-        } else {
-          searchName = args[0].toLowerCase();
-          extraMessage = args.slice(1).join(' ').trim();
-        }
+        const searchName = args[0].toLowerCase();
+        text = args.slice(1).join(" ");
 
-        namesToTag = combined.filter(member =>
-          member.Name.toLowerCase().includes(searchName)
+        tagUsers = members.filter(m =>
+          m.name.toLowerCase().includes(searchName)
         );
 
-        if (namesToTag.length === 0) {
-          return api.sendMessage('❌ User not found!', threadID, messageID);
+        if (tagUsers.length === 0) {
+          return api.sendMessage("❌ User Not Found", threadID, messageID);
         }
       }
 
-      const mentions = [];
-      const bodyParts = [];
+      const mentions = tagUsers.map(u => ({
+        tag: u.name,
+        id: u.id
+      }));
 
-      namesToTag.forEach(({ Name, UserId }) => {
-        const taggedName = `@${Name}`;
-        bodyParts.push(taggedName);
-        mentions.push({
-          tag: taggedName,
-          id: UserId
-        });
-      });
+      const namesText = tagUsers.map(u => u.name).join(", ");
+      const body = text ? `${namesText}\n${text}` : namesText;
 
-      const bodyText = bodyParts.join(' ');
-      const finalBody = extraMessage ? `${bodyText} - ${extraMessage}` : bodyText;
+      api.sendMessage(
+        { body, mentions },
+        threadID,
+        messageReply ? messageReply.messageID : messageID
+      );
 
-      return api.sendMessage({
-        body: finalBody,
-        mentions
-      }, threadID, targetMessageID);
-
-    } catch (e) {
-      return api.sendMessage(e.message, threadID, messageID);
+    } catch (err) {
+      api.sendMessage("❌ Error: " + err.message, threadID, messageID);
     }
   }
 };
