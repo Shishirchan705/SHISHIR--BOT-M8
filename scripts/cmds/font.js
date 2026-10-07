@@ -49,7 +49,7 @@ module.exports = {
     if (args[0] && args[0].toLowerCase() === "list") {
       api.setMessageReaction("📜", messageID, () => {}, true);
       try {
-        const res = await axios.get(`${API_URL}?text=xalman&style=List`);
+        const res = await axios.get(`${API_URL}?text=SHISHIR&style=List`);
         const previews = res.data.previews;
         
         let listMsg = "❖ 𝖥𝖮𝖭𝖳 𝖲𝖳𝖸𝖫𝖨𝖲𝖳 𝖯𝖱𝖤𝖵𝖨𝖤𝖶 ❖\n━━━━━━━━━━━━━━━━━━\n";
