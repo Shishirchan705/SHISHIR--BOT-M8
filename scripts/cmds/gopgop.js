@@ -9,7 +9,7 @@ const IMAGE_NAME = "gopgop";
 module.exports = {
   config: {
     name: "gopgop",
-    aliases: ["gop", "gok","gokgok"],
+    aliases: ["gopg", "gok","gokgok"],
     version: "4.0.0",
     author: "HR ID OY",
     countDown: 5,
