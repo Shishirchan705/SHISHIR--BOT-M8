@@ -146,7 +146,7 @@ async function findLatestLog() {
 module.exports = {
     config: {
         name             : "terminal",
-        aliases          : ["term", "tm"],
+        aliases          : ["term", "tr"],
         version          : "1.0.0",
         author           : "SIFAT",
         countDown        : 2,
