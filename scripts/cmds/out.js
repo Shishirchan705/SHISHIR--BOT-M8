@@ -5,7 +5,7 @@ module.exports = {
     version: "2.5",
     author: "xalman",
     countDown: 5,
-    role: 1,
+    role: 2,
     shortDescription: "Bot will leave group",
     longDescription: "",
     category: "admin",
