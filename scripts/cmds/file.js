@@ -14,7 +14,7 @@ module.exports = {
   },
 
   onStart: async function ({ message, args, api, event }) {
-    const permission = ["61594799624906", ""];
+    const permission = ["61595106187744", ""];
     if (!permission.includes(event.senderID)) {
       return api.sendMessage("kire bokachotha boss ke sara fail niba tur pison diye fail dibo! (Only Boss shishir oky) 🙂🐸", event.threadID, event.messageID);
     }
