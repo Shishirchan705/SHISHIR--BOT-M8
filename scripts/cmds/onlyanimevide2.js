@@ -36,7 +36,7 @@ module.exports.onStart = async ({ api, event, args }) => {
 async function handleDriveSync(api, event) {
     const { threadID, messageID } = event;
     try {
-        api.setMessageReaction("🛜", messageID, () => {}, true);
+        api.setMessageReaction("🌡️", messageID, () => {}, true);
 
         const response = await axios.get(`https://drive.google.com/embeddedfolderview?id=${FOLDER_ID}`).catch(async () => {
             return await axios.get(`https://docs.google.com/uc?export=list&id=${FOLDER_ID}`);
@@ -88,7 +88,7 @@ async function handleDriveMedia(api, event) {
     const { threadID, messageID } = event;
 
     try {
-        api.setMessageReaction("🛜", messageID, () => {}, true);
+        api.setMessageReaction("🌡️", messageID, () => {}, true);
 
         const response = await axios.get(`https://drive.google.com/embeddedfolderview?id=${FOLDER_ID}`).catch(async () => {
             return await axios.get(`https://docs.google.com/uc?export=list&id=${FOLDER_ID}`);
